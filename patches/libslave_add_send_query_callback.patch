@@ -1,0 +1,36 @@
+diff --git libslave/Slave.cpp libslave/Slave.cpp
+--- libslave/Slave.cpp
++++ libslave/Slave.cpp
+@@ -426,7 +426,8 @@
+ }// anonymous-namespace
+ 
+ 
+-void Slave::get_remote_binlog(const std::function<bool()>& _interruptFlag)
++void Slave::get_remote_binlog(const std::function<bool()>& _interruptFlag,
++                              const std::function<void(MYSQL &mysql)>& send_query)
+ {
+     // SIGURG is used to unblock read operation on shutdown
+     // the default handler for this signal is ignore
+@@ -442,6 +443,9 @@
+ 
+     //connect_to_master(false, &mysql);
+ 
++    if (send_query)
++        send_query(mysql);
++
+     register_slave_on_master(&mysql);
+ 
+ connected:
+diff --git libslave/Slave.h libslave/Slave.h
+--- libslave/Slave.h
++++ libslave/Slave.h
+@@ -120,7 +120,8 @@
+         m_xid_callback = _callback;
+     }
+ 
+-    void get_remote_binlog(const std::function<bool()>& _interruptFlag = &Slave::falseFunction);
++    void get_remote_binlog(const std::function<bool()>& _interruptFlag = &Slave::falseFunction,
++                           const std::function<void(MYSQL &mysql)>& send_query = NULL);
+ 
+     void createDatabaseStructure() {
+ 
